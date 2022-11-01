@@ -6,9 +6,10 @@ import mapPicture from '../images/map.png'
 
 declare var window: any
 
+
 const Canvas = () => {
     const canvasRef = React.useRef(null)
-
+    const API_URL = 'https://big-bonch.herokuapp.com/api';
     // useEffect(() => {
     //
     //     const canvas = canvasRef.current;
@@ -19,7 +20,7 @@ const Canvas = () => {
     // }, [])
 
     useEffect(() => {
-        const socket = io('http://localhost:8080')
+        const socket = io(`${API_URL}`)
         const canvas = canvasRef.current;
         // @ts-ignore
         const ctx = canvas.getContext('2d');
