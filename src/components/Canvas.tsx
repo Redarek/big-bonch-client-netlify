@@ -9,7 +9,7 @@ declare var window: any
 
 const Canvas = () => {
     const canvasRef = React.useRef(null)
-    const API_URL = 'https://big-bonch.herokuapp.com/api';
+    const BASE_URL = 'https://big-bonch.herokuapp.com';
     // useEffect(() => {
     //
     //     const canvas = canvasRef.current;
@@ -20,7 +20,7 @@ const Canvas = () => {
     // }, [])
 
     useEffect(() => {
-        const socket = io(`${API_URL}`)
+        const socket = io(`${BASE_URL}`)
         const canvas = canvasRef.current;
         // @ts-ignore
         const ctx = canvas.getContext('2d');
