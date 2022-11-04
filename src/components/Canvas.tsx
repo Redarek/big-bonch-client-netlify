@@ -29,9 +29,12 @@ const Canvas = () => {
 
         const contractAddr = "0xd3D7095fa12C735dfC0893CC2717670E241e1d71"
 
+        const TILE_SIZE = 64
         const WIDTH = 1280
         const HEIGHT = 720
-        const TILE_SIZE = 64
+        let CANVAS_WIDTH = 1280
+        let CANVAS_HEIGHT = 720
+        
         const array = 
             [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -86,6 +89,35 @@ const Canvas = () => {
         //     }
         // })
 
+        // resize game
+        let resizeCanvas = function(){
+            CANVAS_WIDTH = window.innerWidth - 4;
+            CANVAS_HEIGHT = window.innerHeight - 4;
+          
+            let ratio = 16 / 9;
+            if(CANVAS_HEIGHT < CANVAS_WIDTH / ratio)
+              CANVAS_WIDTH = CANVAS_HEIGHT * ratio;
+            else
+              CANVAS_HEIGHT = CANVAS_WIDTH / ratio;
+            // @ts-ignore
+            canvas.width = WIDTH;
+            // @ts-ignore
+            canvas.height = HEIGHT;
+            ctx.font = '30px Arial';
+            ctx.mozImageSmoothingEnabled = false;	//better graphics for pixel art
+            ctx.msImageSmoothingEnabled = false;
+            ctx.imageSmoothingEnabled = false;
+            // @ts-ignore
+            canvas.style.width = '' + CANVAS_WIDTH + 'px';
+            // @ts-ignore
+            canvas.style.height = '' + CANVAS_HEIGHT + 'px';
+          }
+          resizeCanvas();
+          
+          window.addEventListener('resize',function(){
+            resizeCanvas();
+          });
+
         //game
         let Img = {}
         // @ts-ignore
@@ -127,9 +159,9 @@ const Canvas = () => {
             // @ts-ignore
             self.map = initPack.map
             // @ts-ignore
-            self.angle = 0
+            self.mouseAngle = initPack.mouseAngle
             // @ts-ignore
-            self.spriteAnimCounter = 0
+            self.spriteAnimCounter = initPack.spriteAnimCounter
 
             // @ts-ignore
             self.draw = function () {
@@ -158,25 +190,25 @@ const Canvas = () => {
                 const frameWidth = Img.player.width / 3
                 // @ts-ignore
                 const frameHeight = Img.player.height / 4
-                socket.on('angle', function (data) {
-                    // @ts-ignore
-                    self.angle = data
-                })
+                // socket.on('angle', function (data) {
+                //     // @ts-ignore
+                //     self.angle = data
+                // })
                 let directionMod = 2 // вправо
                 // @ts-ignore
-                if (self.angle >= 45 && self.angle < 135) //вниз
+                if (self.mouseAngle >= 45 && self.mouseAngle < 135) //вниз
                     directionMod = 0
                 // @ts-ignore
-                else if ((self.angle >= 135 && self.angle <= 180) || (self.angle >= -180 && self.angle < -135)) //влево
+                else if ((self.mouseAngle >= 135 && self.mouseAngle <= 180) || (self.mouseAngle >= -180 && self.mouseAngle < -135)) //влево
                     directionMod = 3
                 // @ts-ignore
-                else if (self.angle >= -135 && self.angle < -45) //вверх
+                else if (self.mouseAngle >= -135 && self.mouseAngle < -45) //вверх
                     directionMod = 1
 
-                socket.on('spriteAnimCounter', function (data) {
-                    // @ts-ignore
-                    self.spriteAnimCounter = data
-                })
+                // socket.on('spriteAnimCounter', function (data) {
+                //     // @ts-ignore
+                //     self.spriteAnimCounter = data
+                // })
                 // @ts-ignore
                 let walkingMod = Math.floor(self.spriteAnimCounter) % 3
                 // @ts-ignore
@@ -260,6 +292,10 @@ const Canvas = () => {
                         p.hp = pack.hp
                     if (pack.score !== undefined)
                         p.score = pack.score
+                    if (pack.mouseAngle !== undefined)
+                        p.mouseAngle = pack.mouseAngle
+                    if (pack.spriteAnimCounter !== undefined)
+                        p.spriteAnimCounter = pack.spriteAnimCounter
                 }
             }
             for (let i = 0; i < data.bullet.length; i++) {
@@ -405,12 +441,18 @@ const Canvas = () => {
         document.onmouseup = function (event) {
             socket.emit('keyPress', {inputId: 'attack', state: false})
         }
-        document.onmousemove = function (event) {
-            let x = -640 + event.clientX - 20
-            let y = -360 + event.clientY - 20
-            let angle = Math.atan2(y, x) / Math.PI * 180
+        document.onmousemove = function (mouse) {       
+            // @ts-ignore
+            var mouseX = mouse.clientX - canvas.getBoundingClientRect().left;
+            // @ts-ignore
+	        var mouseY = mouse.clientY - canvas.getBoundingClientRect().top;
+
+	        mouseX -= CANVAS_WIDTH/2;
+	        mouseY -= CANVAS_HEIGHT/2;
+
+            let angle = Math.atan2(mouseY, mouseX) / Math.PI * 180
             socket.emit('keyPress', {inputId: 'mouseAngle', state: angle})
-            socket.emit('moveMouse')
+            // socket.emit('moveMouse')
             //тут отдельный сокет эмит для aimAngle и на сервере вынести ON из keyPress
         }
 
